@@ -11,8 +11,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from os.path import join
-from numba import njit, prange
-from IPython import embed
 
 
 class StatsPlot(Plotter):
@@ -68,33 +66,29 @@ class HistPlot(Plotter):
 
 
 def main():
-    # description = (
-    #     "Generate the pedestals from an R0 file, subtract it from another "
-    #     "R0 file, and plot the comparison of residuals from different "
-    #     "pedestal methods"
-    # )
-    # parser = argparse.ArgumentParser(description=description,
-    #                                  formatter_class=Formatter)
-    # parser.add_argument('-f', '--file', dest='r0_path', required=True,
-    #                     help='R0 file to obtain residuals from')
-    # parser.add_argument('-p', '--pedestal', dest='pedestal_r0_path',
-    #                     required=True,
-    #                     help='R0 file to generate pedestal from')
-    # parser.add_argument('-o', '--output', dest='output_dir', required=True,
-    #                     help='directort to store output plots')
-    # args = parser.parse_args()
-    #
-    # r0_path = args.r0_path
-    # pedestal_r0_path = args.pedestal_r0_path
-    # output_dir = args.output_dir
+    description = (
+        "Generate the pedestals from an R0 file, subtract it from another "
+        "R0 file, and plot the comparison of residuals from different "
+        "pedestal methods"
+    )
+    parser = argparse.ArgumentParser(description=description,
+                                     formatter_class=Formatter)
+    parser.add_argument('-f', '--file', dest='r0_path', required=True,
+                        help='R0 file to obtain residuals from')
+    parser.add_argument('-p', '--pedestal', dest='pedestal_r0_path',
+                        required=True,
+                        help='R0 file to generate pedestal from')
+    parser.add_argument('-o', '--output', dest='output_dir', required=True,
+                        help='directort to store output plots')
+    args = parser.parse_args()
 
-    r0_path = "/Users/Jason/Downloads/tempdata/Run06136_r0.tio"
-    pedestal_r0_path = "/Users/Jason/Downloads/tempdata/Run06136_r0.tio"
-    output_dir = "/Users/Jason/Downloads/compare_pedestals"
+    r0_path = args.r0_path
+    pedestal_r0_path = args.pedestal_r0_path
+    output_dir = args.output_dir
 
     create_directory(output_dir)
-    reader_ped = TIOReader(pedestal_r0_path)  # TODO
-    reader_res = TIOReader(r0_path, max_events=1000)  # TODO
+    reader_ped = TIOReader(pedestal_r0_path)
+    reader_res = TIOReader(r0_path, max_events=1000)
 
     # Generate Pedestals
     pedestal_info = (
