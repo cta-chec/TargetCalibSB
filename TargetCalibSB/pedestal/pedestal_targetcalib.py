@@ -46,6 +46,6 @@ class PedestalTargetCalib(PedestalAbstract):
                 sample = wfs[ipix, isam]
                 fbpisam = fblockphase + isam
                 pedestal_value = pedestal[ipix, fblock, fbpisam]
-                if pedestal_value > 0:
+                if pedestal_value != 0:
                     subtracted[ipix, isam] = sample - pedestal_value
         return subtracted

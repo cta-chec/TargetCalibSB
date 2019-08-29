@@ -9,8 +9,9 @@ from CHECLabPy.utils.files import create_directory
 from tqdm import tqdm
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FuncFormatter, MultipleLocator
 from os.path import join
+from IPython import embed
 
 
 class StatsPlot(Plotter):
@@ -65,6 +66,34 @@ class HistPlot(Plotter):
         self.add_legend('best')
 
 
+class WaveformPlot(Plotter):
+    def __init__(self):
+        super().__init__()
+
+        self.fig = plt.figure(figsize=(8, 5))
+        self.ax_dict = dict(
+            bp0=self.fig.add_subplot(2, 4, 1),
+            bp4=self.fig.add_subplot(2, 4, 2),
+            bp8=self.fig.add_subplot(2, 4, 3),
+            bp12=self.fig.add_subplot(2, 4, 4),
+            bp16=self.fig.add_subplot(2, 4, 5),
+            bp20=self.fig.add_subplot(2, 4, 6),
+            bp24=self.fig.add_subplot(2, 4, 7),
+            bp28=self.fig.add_subplot(2, 4, 8),
+        )
+
+    def plot(self, wf, fci):
+        bp = fci % 32
+        ax = self.ax_dict[f'bp{bp}']
+        ax.plot(wf)
+
+    def finish(self):
+        for i, ax in enumerate(self.ax_dict.values()):
+            ax.xaxis.set_major_locator(MultipleLocator(32))
+            ax.set_title(f"first_cell_id % 32 = {i*4}")
+            ax.set_ylim((-1, 1))
+
+
 def main():
     description = (
         "Generate the pedestals from an R0 file, subtract it from another "
@@ -110,6 +139,10 @@ def main():
     hist_tc = OnlineHist(100, (-10, 10))
     hist_bp = OnlineHist(100, (-10, 10))
 
+    wf_list_tc = []
+    wf_list_bp = []
+    fci = []
+
     # Subtract Pedestals
     desc = "Subtracting pedestal"
     for wfs in tqdm(reader_res, total=reader_res.n_events, desc=desc):
@@ -126,6 +159,10 @@ def main():
         pstats_bp.add_to_stats(subtracted_bp)
         stats_bp.add_to_stats(subtracted_bp)
         hist_bp.add(subtracted_bp)
+
+        wf_list_tc.append(subtracted_tc)
+        wf_list_bp.append(subtracted_bp)
+        fci.append(wfs.first_cell_id)
 
     # Plot results
     label_tc = pedestal_tc.__class__.__name__
@@ -150,6 +187,20 @@ def main():
         hist_bp.hist, hist_bp.edges, stats_bp.mean, stats_bp.std, label_bp
     )
     p_hist.save(join(output_dir, "hist.pdf"))
+
+    p_wf_tc = WaveformPlot()
+    p_wf_bp = WaveformPlot()
+    wfs_tc = np.stack(wf_list_tc)
+    wfs_bp = np.stack(wf_list_bp)
+    avg_tc = np.average(wfs_tc, axis=0)
+    avg_bp = np.average(wfs_bp, axis=0)
+    for iev in range(len(wf_list_tc)):
+        ev_avg_tc = np.average(wf_list_tc[iev] - avg_tc, axis=0)
+        ev_avg_bp = np.average(wf_list_bp[iev] - avg_bp, axis=0)
+        p_wf_tc.plot(ev_avg_tc, fci[iev])
+        p_wf_bp.plot(ev_avg_bp, fci[iev])
+    p_wf_tc.save(join(output_dir, f"wfs_{label_tc}.pdf"))
+    p_wf_bp.save(join(output_dir, f"wfs_{label_bp}.pdf"))
 
 
 if __name__ == '__main__':
