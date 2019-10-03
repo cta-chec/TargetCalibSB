@@ -19,10 +19,12 @@ class PedestalAbstract:
         n_cells : int
             Number of storage cells in the ASIC
         """
-        shape = self.define_pedestal_dimensions(n_pixels, n_samples, n_cells)
-        self._pedestal = np.zeros(shape, dtype=np.float32)
-        self._hits = np.zeros(shape, dtype=np.uint32)
-        self._m2 = np.zeros(shape, dtype=np.float32)
+        self.shape = self.define_pedestal_dimensions(
+            n_pixels, n_samples, n_cells
+        )
+        self._pedestal = np.zeros(self.shape, dtype=np.float32)
+        self._hits = np.zeros(self.shape, dtype=np.uint32)
+        self._m2 = np.zeros(self.shape, dtype=np.float32)
 
     def add_to_pedestal(self, wfs, fci):
         """
