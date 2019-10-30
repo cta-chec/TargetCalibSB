@@ -1,7 +1,7 @@
 from numba import njit
 
 
-@njit(fastmath=True, parallel=True)
+@njit(fastmath=True)
 def welfords_online_algorithm(sample, mean, count, m2):
     """
     Obtain the next iteration for Welford's online algorithm to stably
