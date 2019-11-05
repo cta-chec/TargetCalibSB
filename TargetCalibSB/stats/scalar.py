@@ -57,7 +57,7 @@ class OnlineHist:
         return self
 
     @staticmethod
-    @njit(fastmath=True, parallel=True)
+    @njit(fastmath=True)
     def _add(entries, edges):
         hist, _ = np.histogram(entries.ravel(), bins=edges)
         return hist
