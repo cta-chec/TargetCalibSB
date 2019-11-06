@@ -55,7 +55,7 @@ def main():
     args = parser.parse_args()
 
     r0_path = args.r0_path
-    channel = 7
+    channel = 0
     output_dir = args.output_dir
 
     create_directory(output_dir)
@@ -73,7 +73,9 @@ def main():
 
     # embed()
 
-    for cell in range(703,reader.n_cells):
+    for cell in range(reader.n_cells):
+        if (pedestal.hits[channel, cell] == 0).all():
+            continue
         p_cell_wf = CellWaveform()
         p_cell_wf.plot(
             pedestal.pedestal[channel, cell],
