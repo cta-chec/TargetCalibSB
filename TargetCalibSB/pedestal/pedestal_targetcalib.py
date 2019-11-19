@@ -97,10 +97,26 @@ class PedestalTargetCalib(PedestalAbstract):
                     offset = header['offset']
                     pedestal = (pedestal.astype(np.float32) - offset) / scale
                 self._pedestal = pedestal.astype(np.float32)
-                if "HITS" and "STD" in file:
+                if "HITS" and "STDDEV" in file:
                     hits = file["HITS"].read()["CELLS"].reshape(self.shape)
                     std = file["STDDEV"].read()["CELLS"].reshape(self.shape)
                     self._hits = hits
                     self._m2 = std ** 2 * (self._hits - 1)
             except ValueError:
                 raise ValueError("Incompatible pedestal class for file")
+
+    @classmethod
+    def from_tcal(cls, path):
+        with fitsio.FITS(path) as file:
+            header = file[0].read_header()
+            n_pixels = header['TM'] * header['PIX']
+            n_blocks = header['BLOCKS']
+            n_bpisam = header['SAMPLESBP']
+
+        instance = cls(n_pixels, 128, 4096)
+        instance.shape = (n_pixels, n_blocks, n_bpisam)
+        instance._pedestal = np.zeros(instance.shape, dtype=np.float32)
+        instance._hits = np.zeros(instance.shape, dtype=np.uint32)
+        instance._m2 = np.zeros(instance.shape, dtype=np.float32)
+        instance.load_tcal(path)
+        return instance
