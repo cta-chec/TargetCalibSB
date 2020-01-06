@@ -1,4 +1,5 @@
 from TargetCalibSB.overflow import correct_overflow
+from TargetCalibSB.vped import VpedCalibrator
 import numpy as np
 from numba import njit
 
