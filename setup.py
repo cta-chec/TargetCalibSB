@@ -24,6 +24,7 @@ setup(
         'iminuit',
         'numba',
         'fitsio',
+        'h5py',
         'PyYAML',
         'packaging',
         'CHECLabPy',
