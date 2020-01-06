@@ -53,7 +53,7 @@ class PedestalTargetCalib(PedestalAbstract):
         return subtracted
 
     def save_tcal(self, path, compress=False):
-        print(f"Saving pedestal file: {path}")
+        print(f"Saving pedestal tcal file: {path}")
         if exists(path):
             remove(path)
         shape = (self.shape[0], np.prod(self.shape[1:]))
@@ -74,7 +74,7 @@ class PedestalTargetCalib(PedestalAbstract):
             scale = int(65535 / (range_ + 1))
             if scale < 1:
                 scale = 1
-            offset = int(-1 * min_ + 1) * scale;
+            offset = int(-1 * min_ + 1) * scale
             header["SCALE"] = scale
             header["OFFSET"] = offset
             pedestal = np.round(pedestal * scale + offset).astype(np.uint16)
@@ -87,14 +87,14 @@ class PedestalTargetCalib(PedestalAbstract):
             file.write(dict(CELLS=self.std.reshape(shape)), extname="STDDEV")
 
     def load_tcal(self, path):
-        print(f"Loading pedestal file: {path}")
+        print(f"Loading pedestal tcal file: {path}")
         with fitsio.FITS(path) as file:
             try:
                 pedestal = file["DATA"].read()["CELLS"].reshape(self.shape)
                 if pedestal.dtype == np.dtype('>u2'):
                     header = file[0].read_header()
-                    scale = header['scale']
-                    offset = header['offset']
+                    scale = header['SCALE']
+                    offset = header['OFFSET']
                     pedestal = (pedestal.astype(np.float32) - offset) / scale
                 self._pedestal = pedestal.astype(np.float32)
                 if "HITS" and "STDDEV" in file:
