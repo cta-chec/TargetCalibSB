@@ -23,7 +23,6 @@ setup(
         'pandas>=0.21.0',
         'iminuit',
         'numba',
-        'fitsio',
         'h5py',
         'PyYAML',
         'packaging',

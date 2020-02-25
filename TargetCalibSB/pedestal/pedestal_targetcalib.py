@@ -3,7 +3,6 @@ from TargetCalibSB.stats import welfords_online_algorithm
 from TargetCalibSB.pedestal.base import PedestalAbstract
 import numpy as np
 from numba import njit, prange
-import fitsio
 from os.path import exists
 from os import remove
 
@@ -53,6 +52,7 @@ class PedestalTargetCalib(PedestalAbstract):
         return subtracted
 
     def save_tcal(self, path, compress=False):
+        import fitsio
         print(f"Saving pedestal tcal file: {path}")
         if exists(path):
             remove(path)
@@ -87,6 +87,7 @@ class PedestalTargetCalib(PedestalAbstract):
             file.write(dict(CELLS=self.std.reshape(shape)), extname="STDDEV")
 
     def load_tcal(self, path):
+        import fitsio
         print(f"Loading pedestal tcal file: {path}")
         with fitsio.FITS(path) as file:
             try:
@@ -107,6 +108,7 @@ class PedestalTargetCalib(PedestalAbstract):
 
     @classmethod
     def from_tcal(cls, path):
+        import fitsio
         with fitsio.FITS(path) as file:
             header = file[0].read_header()
             n_pixels = int(header['TM'] * header['PIX'])

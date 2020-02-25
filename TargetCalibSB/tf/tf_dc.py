@@ -3,7 +3,6 @@ from TargetCalibSB.stats import welfords_online_algorithm
 from TargetCalibSB.tf.base import TFAbstract
 import numpy as np
 from numba import njit, prange
-import fitsio
 from os.path import exists
 from os import remove
 
@@ -72,6 +71,7 @@ class TFDC(TFAbstract):
             file.write(dict(CELLS=self._input_amplitudes), extname="AMPLITUDES")
 
     def load_tcal(self, path):
+        import fitsio
         print(f"Loading TF tcal file: {path}")
         with fitsio.FITS(path) as file:
             try:
@@ -91,6 +91,7 @@ class TFDC(TFAbstract):
 
     @classmethod
     def from_tcal(cls, path):
+        import fitsio
         with fitsio.FITS(path) as file:
             header = file[0].read_header()
             n_pixels = int(header['TM'] * header['PIX'])
