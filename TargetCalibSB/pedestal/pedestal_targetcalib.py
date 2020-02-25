@@ -109,9 +109,9 @@ class PedestalTargetCalib(PedestalAbstract):
     def from_tcal(cls, path):
         with fitsio.FITS(path) as file:
             header = file[0].read_header()
-            n_pixels = header['TM'] * header['PIX']
-            n_blocks = header['BLOCKS']
-            n_bpisam = header['SAMPLESBP']
+            n_pixels = int(header['TM'] * header['PIX'])
+            n_blocks = int(header['BLOCKS'])
+            n_bpisam = int(header['SAMPLESBP'])
 
         instance = cls(n_pixels, 128, 4096)
         instance.shape = (n_pixels, n_blocks, n_bpisam)
