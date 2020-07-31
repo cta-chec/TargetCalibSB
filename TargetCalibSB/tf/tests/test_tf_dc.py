@@ -19,7 +19,7 @@ def tf():
     n_pixels = 64
     n_samples = 64
     n_cells = 256
-    voltages = np.linspace(-10, 10, 10)
+    voltages = np.linspace(-10, 10, 10, dtype=np.float32)
     tf = TFDC(n_pixels, n_samples, n_cells, voltages)
     for voltage in voltages:
         amplitude_index = tf.get_input_amplitude_index(voltage)

@@ -145,7 +145,7 @@ class TFAbstract:
         self._apply_amplitudes = None
 
     def get_input_amplitude_index(self, input_amplitude):
-        return self._amplitude_lookup[input_amplitude]
+        return self._amplitude_lookup[np.float32(input_amplitude)]
 
     def finish_generation(self, vped_calibrator=None):
         if vped_calibrator:
