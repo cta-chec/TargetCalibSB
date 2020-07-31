@@ -1,10 +1,9 @@
 from TargetCalibSB import get_cell_ids_for_waveform
 from TargetCalibSB.stats import welfords_online_algorithm
 from TargetCalibSB.tf.base import TFAbstract
+from TargetCalibSB.tcal import load_tcal_tfinput, save_tcal_tfinput
 import numpy as np
 from numba import njit, prange
-from os.path import exists
-from os import remove
 
 
 class TFDC(TFAbstract):
@@ -51,57 +50,33 @@ class TFDC(TFAbstract):
         return calibrated
 
     def save_tcal(self, path):
-        print(f"Saving TF tcal file: {path}")
-        if exists(path):
-            remove(path)
-        shape = (self.shape[0], np.prod(self.shape[1:]))
-
-        header = dict(
-            TYPE=4,
-            TM=self.shape[0] // 64,
-            PIX=64,
-            CELLS=self.shape[1],
-            PNTS=self.shape[2],
-        )
-        with fitsio.FITS(path, 'rw') as file:
-            file.create_image_hdu()
-            file[0].write_keys(header)
-            file.write(dict(CELLS=self.tf.reshape(shape)), extname="DATA")
-            file.write(dict(CELLS=self.hits.reshape(shape)), extname="HITS")
-            file.write(dict(CELLS=self._input_amplitudes), extname="AMPLITUDES")
+        save_tcal_tfinput(path, self.tf, self.hits, self._input_amplitudes)
 
     def load_tcal(self, path):
-        import fitsio
-        print(f"Loading TF tcal file: {path}")
-        with fitsio.FITS(path) as file:
-            try:
-                tf = file["DATA"].read()["CELLS"].reshape(self.shape)
-                hits = file["HITS"].read()["CELLS"].reshape(self.shape)
-                self._tf = tf.astype(np.float32)
-                self._hits = hits.astype(np.float32)
-                self._input_amplitudes = file["AMPLITUDES"].read()["CELLS"].astype(np.float64)
-            except ValueError:
-                raise ValueError("Incompatible TF class for file")
+        tf, hits, input_amplitudes = load_tcal_tfinput(path)
+        self._tf = tf.astype(np.float32)
+        self._hits = hits.astype(np.float32)
+        self._input_amplitudes = input_amplitudes.astype(np.float32)
 
-            self._amplitude_lookup = dict(zip(
-                self._input_amplitudes,
-                range(self._input_amplitudes.size)
-            ))
-            self._apply_amplitudes = None
+        self._amplitude_lookup = dict(zip(
+            self._input_amplitudes,
+            range(self._input_amplitudes.size)
+        ))
+        self._apply_amplitudes = None
 
     @classmethod
     def from_tcal(cls, path):
-        import fitsio
-        with fitsio.FITS(path) as file:
-            header = file[0].read_header()
-            n_pixels = int(header['TM'] * header['PIX'])
-            n_cells = int(header['CELLS'])
-            n_amplitudes = int(header['PNTS'])
-
+        tf, hits, input_amplitudes = load_tcal_tfinput(path)
+        n_pixels, n_cells, n_amplitudes = tf.shape
         instance = cls(n_pixels, 128, 4096, [0])
-        instance.shape = (n_pixels, n_cells, n_amplitudes)
-        instance._tf = np.zeros(instance.shape, dtype=np.float32)
-        instance._hits = np.zeros(instance.shape, dtype=np.uint32)
+        instance.shape = (n_pixels, n_cells, n_amplitudes)  # Delayed because no wf
+        instance._tf = tf.astype(np.float32)
+        instance._hits = hits.astype(np.float32)
         instance._m2 = np.zeros(instance.shape, dtype=np.float32)
-        instance.load_tcal(path)
+        instance._input_amplitudes = input_amplitudes.astype(np.float32)
+        instance._amplitude_lookup = dict(zip(
+            instance._input_amplitudes,
+            range(instance._input_amplitudes.size)
+        ))
+        instance._apply_amplitudes = None
         return instance
