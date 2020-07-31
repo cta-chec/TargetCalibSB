@@ -3,9 +3,6 @@ from TargetCalibSB.tf.base import make_monotonic
 import numpy as np
 import pytest
 from copy import deepcopy
-from tqdm import tqdm, trange
-from matplotlib import pyplot as plt
-from IPython import embed
 
 
 def get_adc(voltage):
@@ -104,8 +101,3 @@ def test_tcal(tf, tmp_path):
     np.testing.assert_allclose(original_tf.reshape(shape), np.array(tf.GetTFInput()))
     np.testing.assert_allclose(original_hits.reshape(shape), np.array(tf.GetHits()))
     np.testing.assert_allclose(original_amplitudes, np.array(tf.GetAmplitude()))
-
-
-if __name__ == '__main__':
-    test_apply(tf())
-    # test_make_tf_monotonic(tf())
