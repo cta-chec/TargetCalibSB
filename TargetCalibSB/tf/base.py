@@ -1,13 +1,13 @@
 from abc import abstractmethod
 import numpy as np
-from numba import guvectorize, float32, float64
+from numba import guvectorize, float32
 import h5py
 from os.path import exists
 from os import remove
 from datetime import datetime
 
 
-@guvectorize([(float32[:], float64[:], float32[:])], '(s),(s)->(s)', nopython=True)
+@guvectorize([(float32[:], float32[:], float32[:])], '(s),(s)->(s)', nopython=True)
 def make_monotonic(values, amplitudes, result):
     """
     Make an ndarray monotonically increasing over its last axis
@@ -82,7 +82,7 @@ def make_monotonic(values, amplitudes, result):
                 result[ii] = result[i]
 
 
-@guvectorize([(float32[:], float64[:], float32[:])], '(s),(s)->(s)', nopython=True)
+@guvectorize([(float32[:], float32[:], float32[:])], '(s),(s)->(s)', nopython=True)
 def get_zero_offset(tf, amplitudes, offset):
     """
     Get the offset for the amplitude axis that is required so that the
@@ -140,12 +140,8 @@ class TFAbstract:
         self._tf = np.zeros(self.shape, dtype=np.float32)
         self._hits = np.zeros(self.shape, dtype=np.uint32)
         self._m2 = np.zeros(self.shape, dtype=np.float32)
-        # TODO: use float32 after https://github.com/numba/numba/issues/4890
-        self._input_amplitudes = np.array(sorted(amplitudes), dtype=np.float64)
-        self._amplitude_lookup = dict(zip(
-            self._input_amplitudes,
-            range(n_amplitudes)
-        ))
+        self._input_amplitudes = np.array(sorted(amplitudes), dtype=np.float32)
+        self._amplitude_lookup = dict(zip(self._input_amplitudes, range(n_amplitudes)))
         self._apply_amplitudes = None
 
     def get_input_amplitude_index(self, input_amplitude):
