@@ -1,13 +1,16 @@
 from abc import abstractmethod
 import numpy as np
-from numba import guvectorize, float32
+from numba import guvectorize, float32, float64
 import h5py
 from os.path import exists
 from os import remove
 from datetime import datetime
 
 
-@guvectorize([(float32[:], float32[:], float32[:])], '(s),(s)->(s)', nopython=True)
+@guvectorize([
+    (float32[:], float32[:], float32[:]),
+    (float32[:], float64[:], float32[:])
+], '(s),(s)->(s)', nopython=True)
 def make_monotonic(values, amplitudes, result):
     """
     Make an ndarray monotonically increasing over its last axis
@@ -82,7 +85,10 @@ def make_monotonic(values, amplitudes, result):
                 result[ii] = result[i]
 
 
-@guvectorize([(float32[:], float32[:], float32[:])], '(s),(s)->(s)', nopython=True)
+@guvectorize([
+    (float32[:], float32[:], float32[:]),
+    (float32[:], float64[:], float32[:])
+], '(s),(s)->(s)', nopython=True)
 def get_zero_offset(tf, amplitudes, offset):
     """
     Get the offset for the amplitude axis that is required so that the
@@ -250,7 +256,7 @@ class TFAbstract:
             self._tf = file["TF"][:]
             self._hits = file["HITS"][:]
             self._m2 = file["M2"][:]
-            self._input_amplitudes = file["INPUT_AMPLITUDES"][:]
+            self._input_amplitudes = file["INPUT_AMPLITUDES"][:].astype(np.float32)
             if "APPLY_AMPLITUDES" in file:
                 self._apply_amplitudes = file["APPLY_AMPLITUDES"][:]
 
